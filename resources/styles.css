@@ -1,0 +1,66 @@
+#neutralinoapp {
+    text-align: center;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+
+#neutralinoapp h1{
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 20px;
+}
+
+#neutralinoapp > div {
+    font-size: 16px;
+    font-weight: normal;
+}
+
+input[type="file"] {
+    display: none;
+  }
+
+
+.file-upload{
+    display: block;
+    margin: auto;
+}
+
+.file-label {
+border: 1px solid #ccc;
+display: inline-block;
+padding: 6px 12px;
+cursor: pointer;
+}
+
+.file-upload:hover{
+    color:#fff;
+}
+
+
+.file-preview {
+    margin-top: 10px;
+   }
+
+.preview-image {
+    display: block;
+    margin: auto;
+    max-width: 100%;
+    max-height: 200px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.point{
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    background-color: white;
+    border: 2px solid black;
+    cursor: move;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+svg {
+    width: 100%;
+    height: 100%;
+}
