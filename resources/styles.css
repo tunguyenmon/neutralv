@@ -6,7 +6,7 @@
 }
 
 #neutralinoapp h1{
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto Mono', Source Code Pro, Menlo, Courier, monospace;
     font-size: 20px;
 }
 
@@ -15,9 +15,26 @@
     font-weight: normal;
 }
 
+#open-file-dialog{
+    font-size: 30px;
+    font-family: 'Roboto Mono', Source Code Pro, Menlo, Courier, monospace;
+    background-color: #cbcdd7;
+}
+
+#open-file-dialog:hover{
+    cursor: pointer;
+    
+}
+
+#select-state{
+    color: #bfbfbf;
+    font-family: 'Roboto Mono', Source Code Pro, Menlo, Courier, monospace;
+}
+
 input[type="file"] {
     display: none;
   }
+
 
 
 .file-upload{
@@ -36,31 +53,51 @@ cursor: pointer;
     color:#fff;
 }
 
-
-.file-preview {
-    margin-top: 10px;
-   }
-
-.preview-image {
-    display: block;
-    margin: auto;
-    max-width: 100%;
-    max-height: 200px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-.point{
-    border-radius: 50%;
-    width: 15px;
-    height: 15px;
-    background-color: white;
-    border: 2px solid black;
-    cursor: move;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-}
-
 svg {
     width: 100%;
     height: 100%;
+}
+
+body{
+    background-color: #333333;
+    scrollbar-width: none;  /* Firefox */
+    overflow: clip;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+
+
+:root {
+    --tp-base-background-color: hsla(0, 0%, 10%, 0.80);
+    --tp-base-shadow-color: hsla(0, 0%, 0%, 0.2);
+    --tp-button-background-color: hsla(0, 0%, 80%, 1.00);
+    --tp-button-background-color-active: hsla(0, 0%, 100%, 1.00);
+    --tp-button-background-color-focus: hsla(0, 0%, 95%, 1.00);
+    --tp-button-background-color-hover: hsla(0, 0%, 85%, 1.00);
+    --tp-button-foreground-color: hsla(0, 0%, 0%, 0.80);
+    --tp-container-background-color: hsla(0, 0%, 0%, 0.30);
+    --tp-container-background-color-active: hsla(0, 0%, 0%, 0.60);
+    --tp-container-background-color-focus: hsla(0, 0%, 0%, 0.50);
+    --tp-container-background-color-hover: hsla(0, 0%, 0%, 0.40);
+    --tp-container-foreground-color: hsla(0, 0%, 100%, 0.50);
+    --tp-groove-foreground-color: hsla(0, 0%, 0%, 0.20);
+    --tp-input-background-color: hsla(0, 0%, 0%, 0.30);
+    --tp-input-background-color-active: hsla(0, 0%, 0%, 0.60);
+    --tp-input-background-color-focus: hsla(0, 0%, 0%, 0.50);
+    --tp-input-background-color-hover: hsla(0, 0%, 0%, 0.40);
+    --tp-input-foreground-color: hsla(0, 0%, 100%, 0.50);
+    --tp-label-foreground-color: hsla(0, 0%, 100%, 0.50);
+    --tp-monitor-background-color: hsla(0, 0%, 0%, 0.30);
+    --tp-monitor-foreground-color: hsla(0, 0%, 100%, 0.30);
+  }
+
+button.tp-p2dv_b{
+    display: none;
+}
+
+.tp-dfwv{
+    position: sticky;
 }

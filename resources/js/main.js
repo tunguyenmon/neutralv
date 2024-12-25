@@ -84,29 +84,10 @@ if(NL_OS != "Darwin") { // TODO: Fix https://github.com/neutralinojs/neutralinoj
 }
 
 
-const fileInput = document.querySelector('.file-input');
-const fileName = document.querySelector('.file-name');
-const previewImage = document.querySelector('.preview-image');
-
-$('.file-input').on('change', (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        $('.fileName').text(file.name);
-
-        // Preview the image
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            previewImage.src = e.target.result;
-            previewImage.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    } else {
-        fileName.textContent = 'No file chosen';
-        previewImage.style.display = 'none';
-    }
-});
-
-
 $('#open-file-dialog').on('click', function() {
-    $('#file-input').click(); // This triggers the file input dialog
+    $('#file_input').click(); // This triggers the file input dialog
 });
+
+
+
+
