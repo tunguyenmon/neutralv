@@ -4,21 +4,29 @@ export const pane = new Pane();
 
 export const PARAMS = {
     selectState: "none",
+    imgRatio: 0,
     Point11 : {x: 0, y: 0},
     Point12 : {x: 0, y: 0},
     Point21 : {x: 0, y: 0},
     Point22 : {x: 0, y: 0},
-    vanishingPoint: {x: 0, y: 0}
+    vanishingPoint: {x: 0, y: 0},
+    tireContactPoint: {x: 0, y: 0},
+    overlayP1: {x: 0, y: 0},
+    overlayP2: {x: 0, y: 0},
+    overlayP3: {x: 0, y: 0},
+    overlayP4: {x: 0, y: 0},
+    helpLineP1: {x: 0, y: 0},
+    helpLineP2: {x: 0, y: 0}
 };
 
 
 export const SETTINGS = {
     linewidth : 3,
-    line1color : '#ff0000',
-    line2color : '#0000ff'
+    line1color : '#ed7d31',
+    line2color : '#ed7d31'
 }
 
-const TABS = pane.addTab({
+export const TABS = pane.addTab({
     pages: [
         {title: 'General'},
         {title: 'Lines'},
@@ -26,8 +34,7 @@ const TABS = pane.addTab({
     ]
 });
 
-
-let loadButton = TABS.pages[0].addButton( {
+let loadButton = TABS.pages[0].addButton({
     title: 'Load Image'
 });
 
@@ -39,13 +46,32 @@ export const clearButton = TABS.pages[0].addButton({
     title: 'Clear Image'
 })
 
+let uploadXML = TABS.pages[0].addButton({
+    title: 'Load XML'
+});
+
+uploadXML.on('click', () => {
+    $('#xml_input').click();
+    /*
+    const parser = new fxparser.XMLParser();
+    let parsedXML = parser.parse(XML);
+
+    */
+
+});
+
 
 
 TABS.pages[1].addBinding(PARAMS, 'selectState', {
     label: 'Select State',
     disabled: true
-
 });
+
+TABS.pages[1].addBinding(PARAMS, 'imgRatio', {
+    label: 'Image Ratio',
+    disabled: true
+})
+
 const line1 = TABS.pages[1].addFolder({
     title: 'Line 1',
     expanded: true,
@@ -53,7 +79,7 @@ const line1 = TABS.pages[1].addFolder({
 
 TABS.pages[1].addBlade({
     view: 'separator',
-  });
+});
 
 const line2 = TABS.pages[1].addFolder({
     title: 'Line 2',
@@ -122,6 +148,79 @@ export const vanPointButton = TABS.pages[1].addButton({
     title: 'Calculate Vanishing Point'
 });
 
+const tireContact = TABS.pages[1].addBinding(PARAMS, 'tireContactPoint', {
+    format: (v) => v.toFixed(3),
+    label: 'Tire Contact',
+    x: {step: 1},
+    y: {step: 1}
+});
+
+const tireContactButton = TABS.pages[1].addButton({
+    title: 'Set Tire Contact Point'
+})
+
+tireContactButton.on('click', () => {
+    $('#select-state').text("TCP");
+    $('#container').css('cursor', 'crosshair');
+    PARAMS.selectState = "TCP";
+    pane.refresh();
+});
+
+TABS.pages[1].addBlade({
+    view: 'separator',
+});
+
+const overlayFolder = TABS.pages[1].addFolder({
+    title: "Overlay Points",
+    expanded: true
+});
+
+overlayFolder.addBinding(PARAMS, 'overlayP1', {
+    format: (v) => v.toFixed(3),
+    label: 'Overlay Point 1',
+    x: {step: 1},
+    y: {step: 1}
+});
+
+overlayFolder.addBinding(PARAMS, 'overlayP2', {
+    format: (v) => v.toFixed(3),
+    label: 'Overlay Point 2',
+    x: {step: 1},
+    y: {step: 1}
+});
+
+overlayFolder.addBinding(PARAMS, 'overlayP3', {
+    format: (v) => v.toFixed(3),
+    label: 'Overlay Point 3',
+    x: {step: 1},
+    y: {step: 1}
+});
+
+overlayFolder.addBinding(PARAMS, 'overlayP4', {
+    format: (v) => v.toFixed(3),
+    label: 'Overlay Point 4',
+    x: {step: 1},
+    y: {step: 1}
+});
+
+const helpLineFolder = TABS.pages[1].addFolder({
+    title: "Helping Line Points",
+    expanded: true
+});
+
+helpLineFolder.addBinding(PARAMS, 'helpLineP1', {
+    format: (v) => v.toFixed(3),
+    label: 'Help Line Point 1',
+    x: {step: 1},
+    y: {step: 1}
+});
+
+helpLineFolder.addBinding(PARAMS, 'helpLineP2', {
+    format: (v) => v.toFixed(3),
+    label: 'Help Line Point 2',
+    x: {step: 1},
+    y: {step: 1}
+});
 
 
 

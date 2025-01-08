@@ -1,5 +1,4 @@
 import {PARAMS, SETTINGS, pane, clearButton, vanPointButton} from './menu.js';
-
 //Konva
 var stage = new Konva.Stage({
     container: 'container',
@@ -40,33 +39,133 @@ function drawLine(lineNr, group, color, x1, y1, x2, y2) {
     layer.draw();
 }
 
+function calcLineIntersection(x1,y1,x2,y2,x3,y3,x4,y4){
+    const DETER = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+        
+    if( DETER == 0){
+        console.log("Lines are parallel");
+        return;
+    }
+
+    // Calc Linear Factor
+    const m = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / DETER;   
+
+    // Get Intersection
+    const intersectionX = x1 + m * (x2 - x1);
+    const intersectionY = y1 + m * (y2 - y1);
+
+    return {x: intersectionX, y: intersectionY}
+}
+
+function freeDrawLine(group, color, x1, y1, x2, y2) {
+    var line = new Konva.Line({
+        points: [x1, y1, x2, y2],
+        stroke: color,
+        strokeWidth: SETTINGS.linewidth
+    });
+
+    group.add(line);
+    layer.draw();
+}
+
 function drawVanPoint(group, x, y){
     var circle = new Konva.Circle({
         x: x,
         y: y,
-        radius: 5,
+        radius: 20,
         fill: 'red',
         stroke: 'black',
-        strokeWidth: 1
+        strokeWidth: 5
     });
 
     group.add(circle);
     layer.draw();
 
     //Find closer Points
+    /*
     var line1points = lines.line1.points;
     var line2points = lines.line2.points;
-
+    
+    console.log("HALLOOOO");
     for (let i = 0; i < line1points.length; i+=2){
         var distance = Math.sqrt(Math.pow(line1points[0] - x, 2) + Math.pow(line1points[1] - y, 2));
-        console.log(distance);
-    }
+        console.log("Distance = " + distance);
+    }*/
+}
+
+function calculateAreaPoints(){
+    let point1 = (PARAMS.vanishingPoint.x, PARAMS,vanishingPoint.y);
+
+    
+
+}
+
+function drawTCPArea(group){
+    var points = calculateAreaPoints();
+    
+    var triangle = new Konva.Line({
+        x: PARAMS.vanishingPoint.x,
+        y: PARAMS.vanishingPoint.y,
+
+    })
 }
 
 clearButton.on('click', () => {
     currentImg.destroy();
     if (currentImg != null) currentImg = null;
 });
+
+var currentXML = null;
+$('#xml_input').change(function(e){
+    if (currentXML != null) currentXML.destroy();
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(e){
+        const xml = e.target.result;
+
+        const parser = new DOMParser();
+        const parsedXML = parser.parseFromString(xml, "text/xml");
+        console.log(parsedXML);
+        const points = parsedXML.getElementsByTagName("line");
+
+        var allPoints = [];
+        for (var i = 0; i<5; i++){
+            console.log(points[i]);
+            const x0 =  Number(points[i].getAttribute("x0"));
+            const y0 =  Number(points[i].getAttribute("y0"));
+            allPoints.push([x0, y0]);
+        }
+        const helpLineX1 =  Number(points[5].getAttribute("x1"));
+        const helpLineX2 =  Number(points[5].getAttribute("x1"));
+
+        allPoints.push([helpLineX1, helpLineX2]);
+
+        console.log(allPoints);
+
+        PARAMS.overlayP1.x = allPoints[0][0];
+        PARAMS.overlayP1.y = allPoints[0][1];
+        PARAMS.overlayP2.x = allPoints[1][0];
+        PARAMS.overlayP2.y = allPoints[1][1];
+        PARAMS.overlayP3.x = allPoints[2][0];
+        PARAMS.overlayP3.y = allPoints[2][1];
+        PARAMS.overlayP4.x = allPoints[3][0];
+        PARAMS.overlayP4.y = allPoints[3][1];
+        PARAMS.helpLineP1.x = allPoints[4][0];
+        PARAMS.helpLineP1.y = allPoints[4][1];
+        PARAMS.helpLineP2.x = allPoints[5][0];
+        PARAMS.helpLineP2.y = allPoints[5][1];
+        pane.refresh();
+    }
+
+    // Handle file read errors
+    reader.onerror = () => {
+        output.textContent = "Error reading the file.";
+      };
+
+      reader.readAsText(file); // Read the file as text
+});
+
 
 var currentImg = null;
 $("#file_input").change(function(e){
@@ -84,8 +183,9 @@ $("#file_input").change(function(e){
 
         // calculate dimensions to get max 300px
         var max = 600;
-        var ratio = (img_width > img_height ? (img_width / max) : (img_height / max))
-
+        var ratio = 1//(img_width > img_height ? (img_width / max) : (img_height / max))
+        PARAMS.imgRatio = ratio;
+        pane.refresh();
         // now load the Konva image
         var konvaImg = new Konva.Image({
             image: img,
@@ -108,6 +208,10 @@ $("#file_input").change(function(e){
 
         layer.add(group);
         layer.draw();
+
+        freeDrawLine(group, '#5b9bd5', img_width/2,0,img_width/2,img_height);
+        freeDrawLine(group, '#5b9bd5', 1704, 1508, 1709, 1134);
+
 
         konvaImg.on('click', function(e){
             const pointerPosition = group.getRelativePointerPosition();
@@ -132,7 +236,7 @@ $("#file_input").change(function(e){
                     PARAMS.Point12.x = imageX;
                     PARAMS.Point12.y = imageY;
                     pane.refresh();
-                    drawLine(1, group, 'red', PARAMS.Point11.x, PARAMS.Point11.y, PARAMS.Point12.x, PARAMS.Point12.y);
+                    drawLine(1, group, '#ed7d31', PARAMS.Point11.x, PARAMS.Point11.y, PARAMS.Point12.x, PARAMS.Point12.y);
                     $('#container').css('cursor', 'default');
                     break;
                 case 'L2P1':
@@ -148,7 +252,16 @@ $("#file_input").change(function(e){
                     PARAMS.Point22.x = imageX;
                     PARAMS.Point22.y = imageY;
                     pane.refresh();
-                    drawLine(2, group, 'blue', PARAMS.Point21.x, PARAMS.Point21.y, PARAMS.Point22.x, PARAMS.Point22.y);
+                    drawLine(2, group, '#ed7d31', PARAMS.Point21.x, PARAMS.Point21.y, PARAMS.Point22.x, PARAMS.Point22.y);
+                    $('#container').css('cursor', 'default');
+                    break;
+                case 'TCP':
+                    $('#select-state').text("none");
+                    PARAMS.selectState = "none";
+                    PARAMS.tireContactPoint.x = imageX;
+                    PARAMS.tireContactPoint.y = imageY;
+                    drawTCPArea(group);
+                    pane.refresh();
                     $('#container').css('cursor', 'default');
                     break;
                 case 'none':
@@ -167,22 +280,8 @@ $("#file_input").change(function(e){
             let [x3, y3] = [PARAMS.Point21.x, PARAMS.Point21.y];
             let [x4, y4] = [PARAMS.Point22.x, PARAMS.Point22.y];
         
-            // Calc Matrix Determinant
-            const DETER = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-        
-            if( DETER == 0){
-                console.log("Lines are parallel");
-                return;
-            }
-        
-            // Calc Linear Factor
-            const m = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / DETER;   
-        
-            // Get Intersection
-            const intersectionX = x1 + m * (x2 - x1);
-            const intersectionY = y1 + m * (y2 - y1);
-        
-            PARAMS.vanishingPoint = {x: intersectionX, y: intersectionY};
+            const intersectionPoint = calcLineIntersection(x1, y1, x2, y2, x3, y3, x4, y4);
+            PARAMS.vanishingPoint = {x: intersectionPoint.x, y: intersectionPoint.y};
             pane.refresh();
             
             drawVanPoint(group, PARAMS.vanishingPoint.x, PARAMS.vanishingPoint.y);

@@ -9,12 +9,13 @@
     <script src="js/lib/jquery.js"></script>
     <script src="js/jqui/jquery-ui.min.js"></script>
     <script src="js/lib/konva.js"></script>
-    
+    <script src="js/lib/fastxml.js"></script>
   </head>
   <body>
     
     <div id="neutralinoapp">
       <input type="file" id="file_input" class="file_input" accept="image/*"/>
+      <input type="file" id="xml_input" class="file_input"/>
       <div id="workspace">
         <div id="container"></div>
         <div id="menu">
@@ -22,7 +23,9 @@
         </div>
       </div>
       <!--<canvas id="hiddenCanvas" style="display:none;"></canvas>-->
-
+      <div id="selfplug">
+        
+      </div>
     </div>
     <!-- Neutralino.js client. This file is gitignored, 
         because `neu update` typically downloads it.
