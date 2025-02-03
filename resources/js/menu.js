@@ -1,5 +1,6 @@
 import {Pane} from './lib/tweakpane.js';
 
+// Create Pane, Instantiate Parameters and Create Menu Structure
 export const pane = new Pane();
 
 export const PARAMS = {
@@ -11,14 +12,20 @@ export const PARAMS = {
     Point22 : {x: 0, y: 0},
     vanishingPoint: {x: 0, y: 0},
     tireContactPoint: {x: 0, y: 0},
-    overlayP1: {x: 0, y: 0},
-    overlayP2: {x: 0, y: 0},
-    overlayP3: {x: 0, y: 0},
-    overlayP4: {x: 0, y: 0},
+    overlayTopLeft: {x: 0, y: 0},
+    overlayBottomLeft: {x: 0, y: 0},
+    overlayBottomRight: {x: 0, y: 0},
+    overlayTopRight: {x: 0, y: 0},
     helpLineP1: {x: 0, y: 0},
-    helpLineP2: {x: 0, y: 0}
+    helpLineP2: {x: 0, y: 0},
+    licensePlateLeft: {x: 0, y: 0},
+    licensePlateRight: {x:0, y: 0}
 };
 
+export const inputFiles = {
+    image: "",
+    xml: ""
+}
 
 export const SETTINGS = {
     linewidth : 3,
@@ -26,14 +33,16 @@ export const SETTINGS = {
     line2color : '#ed7d31'
 }
 
+// Tabs
 export const TABS = pane.addTab({
     pages: [
         {title: 'General'},
-        {title: 'Lines'},
-        {title: 'Settings'}
+        {title: 'Edit'},
+        //{title: 'Settings'}
     ]
 });
 
+// Load Image Button
 let loadButton = TABS.pages[0].addButton({
     title: 'Load Image'
 });
@@ -42,26 +51,27 @@ loadButton.on('click', () => {
     $('#file_input').click();
 })
 
-export const clearButton = TABS.pages[0].addButton({
-    title: 'Clear Image'
-})
 
-let uploadXML = TABS.pages[0].addButton({
-    title: 'Load XML'
+
+
+//Upload XML Button
+export let uploadXML = TABS.pages[0].addButton({
+    title: 'Load XML',
+    disabled: true
 });
 
 uploadXML.on('click', () => {
     $('#xml_input').click();
-    /*
-    const parser = new fxparser.XMLParser();
-    let parsedXML = parser.parse(XML);
-
-    */
-
 });
 
+// Clear Page Button
+export const clearButton = TABS.pages[0].addButton({
+    title: 'Clear Image',
+    disabled: true
+})
 
 
+// Show Select State and Image Ratio
 TABS.pages[1].addBinding(PARAMS, 'selectState', {
     label: 'Select State',
     disabled: true
@@ -72,17 +82,9 @@ TABS.pages[1].addBinding(PARAMS, 'imgRatio', {
     disabled: true
 })
 
+// Folder to create Line 1
 const line1 = TABS.pages[1].addFolder({
     title: 'Line 1',
-    expanded: true,
-});
-
-TABS.pages[1].addBlade({
-    view: 'separator',
-});
-
-const line2 = TABS.pages[1].addFolder({
-    title: 'Line 2',
     expanded: true,
 });
 
@@ -102,7 +104,19 @@ line1.addBinding(PARAMS, 'Point12',{
 
 const selectLine1 = line1.addButton({
     title: 'Create Line'
-  });
+});
+
+TABS.pages[1].addBlade({
+    view: 'separator',
+});
+
+// Folder to create Line 2
+const line2 = TABS.pages[1].addFolder({
+    title: 'Line 2',
+    expanded: true,
+});
+
+
 
 selectLine1.on('click', () => {
    $('#select-state').text("L1P1");
@@ -155,8 +169,9 @@ const tireContact = TABS.pages[1].addBinding(PARAMS, 'tireContactPoint', {
     y: {step: 1}
 });
 
-const tireContactButton = TABS.pages[1].addButton({
-    title: 'Set Tire Contact Point'
+export const tireContactButton = TABS.pages[1].addButton({
+    title: 'Set Tire Contact Point',
+    disabled: true
 })
 
 tireContactButton.on('click', () => {
@@ -172,33 +187,33 @@ TABS.pages[1].addBlade({
 
 const overlayFolder = TABS.pages[1].addFolder({
     title: "Overlay Points",
-    expanded: true
+    expanded: false
 });
 
-overlayFolder.addBinding(PARAMS, 'overlayP1', {
+overlayFolder.addBinding(PARAMS, 'overlayTopLeft', {
     format: (v) => v.toFixed(3),
-    label: 'Overlay Point 1',
+    label: 'Overlay Top Left',
     x: {step: 1},
     y: {step: 1}
 });
 
-overlayFolder.addBinding(PARAMS, 'overlayP2', {
+overlayFolder.addBinding(PARAMS, 'overlayBottomLeft', {
     format: (v) => v.toFixed(3),
-    label: 'Overlay Point 2',
+    label: 'Overlay Bottom Left',
     x: {step: 1},
     y: {step: 1}
 });
 
-overlayFolder.addBinding(PARAMS, 'overlayP3', {
+overlayFolder.addBinding(PARAMS, 'overlayBottomRight', {
     format: (v) => v.toFixed(3),
-    label: 'Overlay Point 3',
+    label: 'Overlay Bottom Right',
     x: {step: 1},
     y: {step: 1}
 });
 
-overlayFolder.addBinding(PARAMS, 'overlayP4', {
+overlayFolder.addBinding(PARAMS, 'overlayTopRight', {
     format: (v) => v.toFixed(3),
-    label: 'Overlay Point 4',
+    label: 'Overlay Top Right',
     x: {step: 1},
     y: {step: 1}
 });
@@ -222,10 +237,33 @@ helpLineFolder.addBinding(PARAMS, 'helpLineP2', {
     y: {step: 1}
 });
 
+export let helpLineButton = helpLineFolder.addButton({
+    title: "Show Help Line Length",
+    disabled: true
+});
+
+let selectLicensePlate = TABS.pages[1].addButton({
+    title: "Select License Plate",
+});
+
+
+selectLicensePlate.on('click', () => {
+    $('#select-state').text("LP1");
+    $('#container').css('cursor', 'crosshair');
+    PARAMS.selectState = "LP1";
+    pane.refresh();
+});
+
+export let exportImageBtn = TABS.pages[0].addButton({
+    title: 'Export Image'
+});
+
+
+
 
 
 // Settings Tab
-
+/*
  let linewidth = TABS.pages[2].addBinding(SETTINGS, 'linewidth', {
     label: 'Line Width',
     min: 1,
@@ -255,5 +293,5 @@ let line1color = TABS.pages[2].addBinding(SETTINGS, 'line1color', {
  line2color.on('change', (e) => {
     // Rebuild Image
  });
-
+*/
 

@@ -1,4 +1,5 @@
-import {PARAMS, SETTINGS, pane, clearButton, vanPointButton} from './menu.js';
+import {PARAMS, SETTINGS, pane, clearButton, vanPointButton, inputFiles, helpLineButton, uploadXML, tireContactButton, exportImageBtn} from './menu.js';
+import * as util from './util.js';
 //Konva
 var stage = new Konva.Stage({
     container: 'container',
@@ -9,115 +10,21 @@ var stage = new Konva.Stage({
 });
 
 
-var lines = {
+export var lines = {
     line1: null,
     line2: null
 }
 
-const layer = new Konva.Layer();
+var pixelRatio = 0.00454;
+
+export const layer = new Konva.Layer();
 stage.add(layer);
 stage.draw();
 
-function drawLine(lineNr, group, color, x1, y1, x2, y2) {
-    var line = new Konva.Line({
-        points: [x1, y1, x2, y2],
-        stroke: lineNr == 1? SETTINGS.line1color : lineNr == 2 ? SETTINGS.line2color : 'red',
-        strokeWidth: SETTINGS.linewidth
-    });
-    
-    if (lineNr == 1){
-        if(lines.line1 != null)lines.line1.destroy();
-        lines.line1 = line;
-    }
-    else if(lineNr == 2){
-        if(lines.line2 != null)lines.line2.destroy();
-        lines.line2 = line;
-    }
-    else{console.log("Invalid line number");}
-    
-    group.add(line);
-    layer.draw();
-}
-
-function calcLineIntersection(x1,y1,x2,y2,x3,y3,x4,y4){
-    const DETER = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-        
-    if( DETER == 0){
-        console.log("Lines are parallel");
-        return;
-    }
-
-    // Calc Linear Factor
-    const m = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / DETER;   
-
-    // Get Intersection
-    const intersectionX = x1 + m * (x2 - x1);
-    const intersectionY = y1 + m * (y2 - y1);
-
-    return {x: intersectionX, y: intersectionY}
-}
-
-function freeDrawLine(group, color, x1, y1, x2, y2) {
-    var line = new Konva.Line({
-        points: [x1, y1, x2, y2],
-        stroke: color,
-        strokeWidth: SETTINGS.linewidth
-    });
-
-    group.add(line);
-    layer.draw();
-}
-
-function drawVanPoint(group, x, y){
-    var circle = new Konva.Circle({
-        x: x,
-        y: y,
-        radius: 20,
-        fill: 'red',
-        stroke: 'black',
-        strokeWidth: 5
-    });
-
-    group.add(circle);
-    layer.draw();
-
-    //Find closer Points
-    /*
-    var line1points = lines.line1.points;
-    var line2points = lines.line2.points;
-    
-    console.log("HALLOOOO");
-    for (let i = 0; i < line1points.length; i+=2){
-        var distance = Math.sqrt(Math.pow(line1points[0] - x, 2) + Math.pow(line1points[1] - y, 2));
-        console.log("Distance = " + distance);
-    }*/
-}
-
-function calculateAreaPoints(){
-    let point1 = (PARAMS.vanishingPoint.x, PARAMS,vanishingPoint.y);
-
-    
-
-}
-
-function drawTCPArea(group){
-    var points = calculateAreaPoints();
-    
-    var triangle = new Konva.Line({
-        x: PARAMS.vanishingPoint.x,
-        y: PARAMS.vanishingPoint.y,
-
-    })
-}
-
-clearButton.on('click', () => {
-    currentImg.destroy();
-    if (currentImg != null) currentImg = null;
-});
-
-var currentXML = null;
-$('#xml_input').change(function(e){
+function loadXMLData(e){
     if (currentXML != null) currentXML.destroy();
+    inputFiles.xml = e.target.files[0].name;
+    pane.refresh();
     const file = e.target.files[0];
     const reader = new FileReader();
 
@@ -126,55 +33,74 @@ $('#xml_input').change(function(e){
 
         const parser = new DOMParser();
         const parsedXML = parser.parseFromString(xml, "text/xml");
-        console.log(parsedXML);
         const points = parsedXML.getElementsByTagName("line");
 
         var allPoints = [];
-        for (var i = 0; i<5; i++){
-            console.log(points[i]);
+        for (var i = 0; i<4; i++){
             const x0 =  Number(points[i].getAttribute("x0"));
             const y0 =  Number(points[i].getAttribute("y0"));
             allPoints.push([x0, y0]);
         }
-        const helpLineX1 =  Number(points[5].getAttribute("x1"));
-        const helpLineX2 =  Number(points[5].getAttribute("x1"));
+        allPoints = util.orderPoints(allPoints);
 
-        allPoints.push([helpLineX1, helpLineX2]);
+        const helpLineX0 =  Number(points[4].getAttribute("x0"));
+        const helpLineY0 =  Number(points[4].getAttribute("y0"));
+        const helpLineX1 =  Number(points[4].getAttribute("x1"));
+        const helpLineY1 =  Number(points[4].getAttribute("y1"));
 
+        allPoints.hl0 = [helpLineX0, helpLineY0]
+        allPoints.hl1 = [helpLineX1, helpLineY1]
+
+        console.log("All XML Points: ");
         console.log(allPoints);
 
-        PARAMS.overlayP1.x = allPoints[0][0];
-        PARAMS.overlayP1.y = allPoints[0][1];
-        PARAMS.overlayP2.x = allPoints[1][0];
-        PARAMS.overlayP2.y = allPoints[1][1];
-        PARAMS.overlayP3.x = allPoints[2][0];
-        PARAMS.overlayP3.y = allPoints[2][1];
-        PARAMS.overlayP4.x = allPoints[3][0];
-        PARAMS.overlayP4.y = allPoints[3][1];
-        PARAMS.helpLineP1.x = allPoints[4][0];
-        PARAMS.helpLineP1.y = allPoints[4][1];
-        PARAMS.helpLineP2.x = allPoints[5][0];
-        PARAMS.helpLineP2.y = allPoints[5][1];
+        //Try to remove as soon as possible
+        [PARAMS.overlayTopLeft.x, PARAMS.overlayTopLeft.y] = allPoints.tl; //Top Left
+        [PARAMS.overlayBottomLeft.x, PARAMS.overlayBottomLeft.y] = allPoints.bl; //Bottom Left
+        [PARAMS.overlayBottomRight.x, PARAMS.overlayBottomRight.y] = allPoints.br; //Bottom Right
+        [PARAMS.overlayTopRight.x, PARAMS.overlayTopRight.y] = allPoints.tr; //Top Right
+        [PARAMS.helpLineP1.x, PARAMS.helpLineP1.y] = allPoints.hl0;
+        [PARAMS.helpLineP2.x, PARAMS.helpLineP2.y] = allPoints.hl1;
         pane.refresh();
+        //tireContactButton.disabled = false;
+        helpLineButton.disabled = false;
     }
 
     // Handle file read errors
     reader.onerror = () => {
         output.textContent = "Error reading the file.";
-      };
+    };
 
-      reader.readAsText(file); // Read the file as text
+    reader.readAsText(file);
+}
+
+clearButton.on('click', () => {
+    currentImg.destroy();
+    if (currentImg != null) currentImg = null;
 });
 
-
+var currentXML = null;
 var currentImg = null;
+var helpLine = null;
+var helpLineText = null;
+var tcpArea = null;
+var vp = null;
+var vpLine = null;
+var vpArrow = null;
+var vpText = null;
+
 $("#file_input").change(function(e){
     if (currentImg != null) currentImg.destroy();
+    
+    clearButton.disabled = false;
+    uploadXML.disabled = false;
     var URL = window.webkitURL || window.URL;
     var url = URL.createObjectURL(e.target.files[0]);
     var img = new Image();
     img.src = url;
 
+    inputFiles.image = e.target.files[0].name;
+    pane.refresh();
 
     img.onload = function() {
 
@@ -196,8 +122,6 @@ $("#file_input").change(function(e){
             rotation: 0
         });
 
-        
-
         const group = new Konva.Group({
             draggable: true,
         });
@@ -209,9 +133,17 @@ $("#file_input").change(function(e){
         layer.add(group);
         layer.draw();
 
-        freeDrawLine(group, '#5b9bd5', img_width/2,0,img_width/2,img_height);
-        freeDrawLine(group, '#5b9bd5', 1704, 1508, 1709, 1134);
+        //Draw Middle Line
+        util.freeDrawLine(group, '#5b9bd5', [img_width/2,0,img_width/2,img_height]);
+        
+        //TEST LINE
+        //freeDrawLine(group, '#5b9bd5', 1704, 1508, 1709, 1134);
+        //drawArrow(group, [1704, 1508, 1709, 1134]);
 
+        exportImageBtn.on('click', () =>{
+            console.log("Exporting Images");
+            exportImages(stage);
+        });
 
         konvaImg.on('click', function(e){
             const pointerPosition = group.getRelativePointerPosition();
@@ -236,7 +168,7 @@ $("#file_input").change(function(e){
                     PARAMS.Point12.x = imageX;
                     PARAMS.Point12.y = imageY;
                     pane.refresh();
-                    drawLine(1, group, '#ed7d31', PARAMS.Point11.x, PARAMS.Point11.y, PARAMS.Point12.x, PARAMS.Point12.y);
+                    util.drawLine(1, group, '#ed7d31', PARAMS.Point11.x, PARAMS.Point11.y, PARAMS.Point12.x, PARAMS.Point12.y);
                     $('#container').css('cursor', 'default');
                     break;
                 case 'L2P1':
@@ -252,19 +184,37 @@ $("#file_input").change(function(e){
                     PARAMS.Point22.x = imageX;
                     PARAMS.Point22.y = imageY;
                     pane.refresh();
-                    drawLine(2, group, '#ed7d31', PARAMS.Point21.x, PARAMS.Point21.y, PARAMS.Point22.x, PARAMS.Point22.y);
+                    util.drawLine(2, group, '#ed7d31', PARAMS.Point21.x, PARAMS.Point21.y, PARAMS.Point22.x, PARAMS.Point22.y);
                     $('#container').css('cursor', 'default');
                     break;
                 case 'TCP':
                     $('#select-state').text("none");
+                    if(tcpArea!=null) tcpArea.destroy();
                     PARAMS.selectState = "none";
                     PARAMS.tireContactPoint.x = imageX;
                     PARAMS.tireContactPoint.y = imageY;
-                    drawTCPArea(group);
                     pane.refresh();
+                    drawTCPLinesAndArrows();
                     $('#container').css('cursor', 'default');
                     break;
                 case 'none':
+                    break;
+                case 'LP1':
+                    $('#select-state').text("LP2");
+                    PARAMS.selectState = "LP2";
+                    PARAMS.licensePlateLeft.x = imageX;
+                    PARAMS.licensePlateLeft.y = imageY;
+                    pane.refresh();
+                    
+                    break;
+                case 'LP2':
+                    $('#select-state').text("none");
+                    PARAMS.selectState = "none";
+                    PARAMS.licensePlateRight.x = imageX;
+                    PARAMS.licensePlateRight.y = imageY;
+                    pane.refresh();
+                    $('#container').css('cursor', 'default');
+                    drawLicensePlate();
                     break;
                 default:
                     break;
@@ -273,20 +223,105 @@ $("#file_input").change(function(e){
             //console.log(`Pixel Color: R=${red}, G=${green}, B=${blue}, A=${alpha}`);
         });
 
+        function drawLicensePlate(){
+            util.drawArrow(group, [PARAMS.licensePlateLeft.x +10, PARAMS.licensePlateLeft.y + 60, PARAMS.licensePlateRight.x -10, PARAMS.licensePlateRight.y + 60]);
+            util.freeDrawLine(group, '#ff0000', [PARAMS.licensePlateLeft.x, PARAMS.licensePlateLeft.y - 10, PARAMS.licensePlateLeft.x, PARAMS.licensePlateLeft.y + 140]);
+            util.freeDrawLine(group, '#ff0000', [PARAMS.licensePlateRight.x, PARAMS.licensePlateRight.y - 10, PARAMS.licensePlateRight.x, PARAMS.licensePlateRight.y + 140]);
+            util.add_text(group, (PARAMS.licensePlateRight.x - PARAMS.licensePlateLeft.x).toFixed(0) + "px", [PARAMS.licensePlateLeft.x + 30, PARAMS.licensePlateLeft.y  + 100] );
+            util.add_text(group, "Yk1\n" + PARAMS.licensePlateLeft.x.toFixed(0) + "px", [PARAMS.licensePlateLeft.x, PARAMS.licensePlateLeft.y + 160]);
+            util.add_text(group, "Yk2\n" + PARAMS.licensePlateRight.x.toFixed(0) + "px", [PARAMS.licensePlateRight.x, PARAMS.licensePlateRight.y + 160]);
+        }
+
+        function drawTCPLinesAndArrows(){
+            tcpArea = util.drawTCPArea(group);
+            var intersection = util.getVP_TCP_intersection(tcpArea);
+            util.freeDrawLine(group, '#ff0000', [intersection[0] - 300, intersection[1], intersection[0] + 50, intersection[1]]);
+            console.log(PARAMS.vanishingPoint.x);
+            if(PARAMS.vanishingPoint.x < 0){
+                util.freeDrawLine(group, '#ff0000', [intersection[0] - 300, PARAMS.overlayTopLeft.y, intersection[0] + 50, PARAMS.overlayTopLeft.y]);
+                util.freeDrawLine(group, '#ff0000', [intersection[0] -300, PARAMS.overlayBottomLeft.y, intersection[0] + 50 , PARAMS.overlayBottomLeft.y]);
+                util.drawArrowRed(group, [intersection[0] - 280, PARAMS.overlayTopLeft.y -10, intersection[0] -280, intersection[1]+10]);
+                util.drawArrowRed(group, [intersection[0] - 280, PARAMS.overlayBottomLeft.y +10, intersection[0] - 280, intersection[1]-10]);
+                var topLength = - intersection[1] + PARAMS.overlayTopLeft.y;
+                var bottomLength = intersection[1] - PARAMS.overlayBottomLeft.y;
+                var length = (topLength + bottomLength);
+                util.add_text(group, topLength.toFixed(0) + "px", [intersection[0] - 500, (intersection[1] + PARAMS.overlayTopLeft.y)/2 -30 ] );
+                util.add_text(group, bottomLength.toFixed(0) + "px", [intersection[0] - 500, (intersection[1] + PARAMS.overlayBottomLeft.y)/2 - 30]);
+                util.add_text(group, (topLength/length*100).toFixed(2) + "%", [intersection[0] - 500, (intersection[1] + PARAMS.overlayTopLeft.y)/2 +30] );
+                util.add_text(group, (bottomLength/length*100).toFixed(2) + "%", [intersection[0] - 500, (intersection[1] + PARAMS.overlayBottomLeft.y)/2 + 30]);
+            }
+            else{
+                util.freeDrawLine(group, '#ff0000', [intersection[0] + 300, PARAMS.overlayTopRight.y, intersection[0] - 100, PARAMS.overlayTopRight.y]);
+                util.freeDrawLine(group, '#ff0000', [intersection[0] +300, PARAMS.overlayBottomRight.y, intersection[0] - 100, PARAMS.overlayBottomRight.y]);
+                util.drawArrowRed(group, [intersection[0] + 280, PARAMS.overlayTopLeft.y -10, intersection[0] +280, intersection[1]+10]);
+                util.drawArrowRed(group, [intersection[0] + 280, PARAMS.overlayBottomLeft.y +10, intersection[0] + 280, intersection[1]-10]);
+                var topLength = - intersection[1] + PARAMS.overlayTopRight.y;
+                var bottomLength = intersection[1] - PARAMS.overlayBottomRight.y;
+                var length = (topLength + bottomLength);
+                util.add_text(group, topLength.toFixed(2) + "px", [intersection[0] + 500, (intersection[1] + PARAMS.overlayTopLeft.y)/2] );
+                util.add_text(group, bottomLength.toFixed(2) + "px", [intersection[0] + 500, (intersection[1] + PARAMS.overlayBottomLeft.y)/2]);
+            }
+
+
+        }
+
+
+
         //Vanishing Point
         vanPointButton.on('click', () =>{
+            if (vp != null) vp.destroy();
+            if (vpLine != null) vpLine.destroy();
+            if (vpText != null) vpText.destroy();
+            if (vpArrow != null) vpArrow.destroy();
             let [x1, y1] = [PARAMS.Point11.x , PARAMS.Point11.y];
             let [x2, y2] = [PARAMS.Point12.x, PARAMS.Point12.y];
             let [x3, y3] = [PARAMS.Point21.x, PARAMS.Point21.y];
             let [x4, y4] = [PARAMS.Point22.x, PARAMS.Point22.y];
+
+            tireContactButton.disabled = false;
         
-            const intersectionPoint = calcLineIntersection(x1, y1, x2, y2, x3, y3, x4, y4);
+            const intersectionPoint = util.calcLineIntersection(x1, y1, x2, y2, x3, y3, x4, y4);
             PARAMS.vanishingPoint = {x: intersectionPoint.x, y: intersectionPoint.y};
             pane.refresh();
             
-            drawVanPoint(group, PARAMS.vanishingPoint.x, PARAMS.vanishingPoint.y);
-        
+            vp = util.drawVanPoint(group, PARAMS.vanishingPoint.x, PARAMS.vanishingPoint.y);
+            //Redraw Lines to go to vanishing point
+            redrawLines();
+
+            vpLine = util.freeDrawLine(group, '#5b9bd5', [PARAMS.vanishingPoint.x, 0, PARAMS.vanishingPoint.x, img_height]);
+            vpArrow = util.drawArrow(group, [PARAMS.vanishingPoint.x, 170, img_width/2, 170]);
+            const VPDistance = (Math.abs(PARAMS.vanishingPoint.x - img_width/2)).toFixed(0).toString() + "px";
+            //console.log(VPDistance);
+            vpText = util.add_text(group, VPDistance, [550, 125]);
         });
+
+
+        function redrawLines(){
+            var point11 = [PARAMS.Point11.x, PARAMS.Point11.y];
+            var point12 = [PARAMS.Point12.x, PARAMS.Point12.y];
+            var point21 = [PARAMS.Point21.x, PARAMS.Point21.y];
+            var point22 = [PARAMS.Point22.x, PARAMS.Point22.y];
+
+            lines.line1.destroy();
+            lines.line2.destroy();
+
+            var closerPoint1 = util.getCloserPoint(PARAMS.vanishingPoint.x, PARAMS.vanishingPoint.y, [point11, point12]);
+            var closerPoint2 = util.getCloserPoint(PARAMS.vanishingPoint.x, PARAMS.vanishingPoint.y, [point21, point22]);
+
+            if(closerPoint1 == 1){
+                lines.line1 = util.freeDrawLine(group, '#ed7d31', [PARAMS.Point12.x, PARAMS.Point12.y, PARAMS.vanishingPoint.x, PARAMS.vanishingPoint.y]);
+            }
+            else if(closerPoint1 == 2){
+                lines.line1 = util.freeDrawLine(group, '#ed7d31', [PARAMS.Point11.x, PARAMS.Point11.y, PARAMS.vanishingPoint.x, PARAMS.vanishingPoint.y]);
+            }
+
+            if(closerPoint2 == 1){
+                lines.line2 = util.freeDrawLine(group, '#ed7d31', [PARAMS.Point22.x, PARAMS.Point22.y, PARAMS.vanishingPoint.x, PARAMS.vanishingPoint.y]);
+            }
+            else if (closerPoint2 == 2){
+                lines.line2 = util.freeDrawLine(group, '#ed7d31', [PARAMS.Point21.x, PARAMS.Point21.y, PARAMS.vanishingPoint.x, PARAMS.vanishingPoint.y]);
+            }
+        }
 
         // Rescaling
         var scaleBy = 1.10;
@@ -326,36 +361,44 @@ $("#file_input").change(function(e){
 
 
         });
+
+        $('#xml_input').change(async function(e){
+             // Read the file as text
+            loadXMLData(e);
+        });
+
+        helpLineButton.on('click', () => {
+            if (helpLine != null) helpLine.destroy();
+            //if (helpLineText != null) helpLineText.destroy();
+            helpLine = util.drawArrow(group, [PARAMS.helpLineP1.x, PARAMS.helpLineP1.y - 50, PARAMS.helpLineP2.x, PARAMS.helpLineP2.y -50])
+            helpLineText = (Math.abs(PARAMS.helpLineP1.x - PARAMS.helpLineP2.x)).toFixed(0).toString() + "px";
+            let leftPoint = PARAMS.helpLineP1.x < PARAMS.helpLineP2.x ? PARAMS.helpLineP1 : PARAMS.helpLineP2;
+            util.add_text(group, helpLineText, [leftPoint.x +10, leftPoint.y - 90]);
+        });
     }
 
-    function drawGrid(scale) {
-        /*gridLayer.destroyChildren(); // Clear previous grid
-  
-        const pixelSize = 1 * scale; // Each pixel corresponds to 1x1 unit in the image
-        const stageBounds = stage.getClientRect();
-        const { x, y, width, height } = stageBounds;
-  
-        const startX = Math.floor(x / pixelSize) * pixelSize;
-        const startY = Math.floor(y / pixelSize) * pixelSize;
-  
-        for (let i = startX; i < x + width; i += pixelSize) {
-          for (let j = startY; j < y + height; j += pixelSize) {
-            gridLayer.add(
-              new Konva.Rect({
-                x: i,
-                y: j,
-                width: pixelSize,
-                height: pixelSize,
-                stroke: 'rgba(0, 0, 0, 0.2)', // Light grid lines
-              })
-            );
-          }
-        }
-        gridLayer.batchDraw();
-        */
-      }
+
+    
 
     
     e.target.value = '';
 
 });
+
+
+function downloadURI(uri, name) {
+    const link = document.createElement('a');
+    link.download = name;
+    link.href = uri;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function exportImages(stage){
+    // Get the data URL of the entire stage (PNG format by default)
+    const dataURL = stage.toDataURL();
+    downloadURI(dataURL, 'img.png');
+}
+
+
