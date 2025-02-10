@@ -41,7 +41,7 @@
       "fullScreen": false,
       "alwaysOnTop": true,
       "icon": "/resources/icons/gmkteclogo.jpg",
-      "enableInspector": false,
+      "enableInspector": true,
       "borderless": false,
       "maximize": true,
       "hidden": false,

@@ -9,17 +9,29 @@ var stage = new Konva.Stage({
     draggable: true
 });
 
+export const layer = new Konva.Layer();
+stage.add(layer);
+stage.draw();
 
 export var lines = {
     line1: null,
     line2: null
 }
 
-var pixelRatio = 0.00454;
+const pixelRatio = 0.00454;
 
-export const layer = new Konva.Layer();
-stage.add(layer);
-stage.draw();
+var currentXML = null;
+var currentImg = null;
+var helpLine = null;
+var helpLineText = null;
+var tcpArea = null;
+var vp = null;
+var vpLine = null;
+var vpArrow = null;
+var vpText = null;
+
+
+
 
 function loadXMLData(e){
     if (currentXML != null) currentXML.destroy();
@@ -79,15 +91,7 @@ clearButton.on('click', () => {
     if (currentImg != null) currentImg = null;
 });
 
-var currentXML = null;
-var currentImg = null;
-var helpLine = null;
-var helpLineText = null;
-var tcpArea = null;
-var vp = null;
-var vpLine = null;
-var vpArrow = null;
-var vpText = null;
+
 
 $("#file_input").change(function(e){
     if (currentImg != null) currentImg.destroy();
