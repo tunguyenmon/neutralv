@@ -18,23 +18,44 @@ export var lines = {
     line2: null
 }
 
-const pixelRatio = 0.00454;
+const PIXELRATIO = 0.00454;
 
-var currentXML = null;
-var currentImg = null;
-var helpLine = null;
-var helpLineText = null;
-var tcpArea = null;
-var vp = null;
-var vpLine = null;
-var vpArrow = null;
-var vpText = null;
-
-
+const STATE = {
+    currentXML: null,
+    currentImg: null,
+    helpLine: null,
+    helpLineText: null,
+    helpLineLeft: null,
+    helpLineRight: null,
+    tcpArea: null,
+    vanishingPoint: null,
+    vanishingPointLine: null,
+    vanishingPointArrow: null,
+    vanishingPointText: null,
+    TCPUpperLine: null,
+    TCPMiddleLine: null,
+    TCPLowerLine: null,
+    TCPUpperArrow: null,
+    TCPLowerArrow: null,
+    TCPUpperPX: null,
+    TCPUpperPercentage: null,
+    TCPLowerPX: null,
+    TCPLowerPercentage: null,
+    LPArrow: null,
+    LPLeftLine: null,
+    LPRightLine: null,
+    LPPX : null,
+    LPyk1: null,
+    LPyk2: null
+}
 
 
 function loadXMLData(e){
-    if (currentXML != null) currentXML.destroy();
+    /*  IMPURE
+    *   Modifies state:
+    *   currentXML, 
+    */
+    if (STATE.currentXML != null) STATE.currentXML.destroy();
     inputFiles.xml = e.target.files[0].name;
     pane.refresh();
     const file = e.target.files[0];
@@ -87,14 +108,31 @@ function loadXMLData(e){
 }
 
 clearButton.on('click', () => {
-    currentImg.destroy();
-    if (currentImg != null) currentImg = null;
+    STATE.currentImg.destroy();
+    if (STATE.currentImg != null) STATE.currentImg = null;
+    location.reload();
 });
+
+
+function downloadURI(uri, name) {
+    const link = document.createElement('a');
+    link.download = name;
+    link.href = uri;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function exportImages(stage){
+    // Get the data URL of the entire stage (PNG format by default)
+    const dataURL = stage.toDataURL();
+    downloadURI(dataURL, 'img.png');
+}
 
 
 
 $("#file_input").change(function(e){
-    if (currentImg != null) currentImg.destroy();
+    if (STATE.currentImg != null) STATE.currentImg.destroy();
     
     clearButton.disabled = false;
     uploadXML.disabled = false;
@@ -130,7 +168,7 @@ $("#file_input").change(function(e){
             draggable: true,
         });
 
-        currentImg = group;
+        STATE.currentImg = group;
 
         group.add(konvaImg);
 
@@ -193,7 +231,7 @@ $("#file_input").change(function(e){
                     break;
                 case 'TCP':
                     $('#select-state').text("none");
-                    if(tcpArea!=null) tcpArea.destroy();
+                    if(STATE.tcpArea!=null) STATE.tcpArea.destroy();
                     PARAMS.selectState = "none";
                     PARAMS.tireContactPoint.x = imageX;
                     PARAMS.tireContactPoint.y = imageY;
@@ -228,55 +266,112 @@ $("#file_input").change(function(e){
         });
 
         function drawLicensePlate(){
-            util.drawArrow(group, [PARAMS.licensePlateLeft.x +10, PARAMS.licensePlateLeft.y + 60, PARAMS.licensePlateRight.x -10, PARAMS.licensePlateRight.y + 60]);
-            util.freeDrawLine(group, '#ff0000', [PARAMS.licensePlateLeft.x, PARAMS.licensePlateLeft.y - 10, PARAMS.licensePlateLeft.x, PARAMS.licensePlateLeft.y + 140]);
-            util.freeDrawLine(group, '#ff0000', [PARAMS.licensePlateRight.x, PARAMS.licensePlateRight.y - 10, PARAMS.licensePlateRight.x, PARAMS.licensePlateRight.y + 140]);
-            util.add_text(group, (PARAMS.licensePlateRight.x - PARAMS.licensePlateLeft.x).toFixed(0) + "px", [PARAMS.licensePlateLeft.x + 30, PARAMS.licensePlateLeft.y  + 100] );
-            util.add_text(group, "Yk1\n" + PARAMS.licensePlateLeft.x.toFixed(0) + "px", [PARAMS.licensePlateLeft.x, PARAMS.licensePlateLeft.y + 160]);
-            util.add_text(group, "Yk2\n" + PARAMS.licensePlateRight.x.toFixed(0) + "px", [PARAMS.licensePlateRight.x, PARAMS.licensePlateRight.y + 160]);
+            if (STATE.LPArrow != null){
+                STATE.LPArrow.destroy();
+                STATE.LPLeftLine.destroy();
+                STATE.LPRightLine.destroy();
+                STATE.LPPX.destroy();
+                STATE.LPyk1.destroy();
+                STATE.LPyk2.destroy();
+            }
+            
+            //LP Arrow
+            STATE.LPArrow = util.drawArrow(group, [PARAMS.licensePlateLeft.x, PARAMS.licensePlateLeft.y + 60, PARAMS.licensePlateRight.x, PARAMS.licensePlateRight.y + 60]);
+            //LP Left Line
+            STATE.LPLeftLine = util.freeDrawLine(group, '#ff0000', [PARAMS.licensePlateLeft.x, PARAMS.licensePlateLeft.y - 10, PARAMS.licensePlateLeft.x, PARAMS.licensePlateLeft.y + 140]);
+            //LP Right Line
+            STATE.LPRightLine = util.freeDrawLine(group, '#ff0000', [PARAMS.licensePlateRight.x, PARAMS.licensePlateRight.y - 10, PARAMS.licensePlateRight.x, PARAMS.licensePlateRight.y + 140]);
+            //LP PX
+            STATE.LPPX = util.add_text(group, Math.abs((PARAMS.licensePlateRight.x - PARAMS.licensePlateLeft.x).toFixed(0)) + "px", [PARAMS.licensePlateLeft.x + 30, PARAMS.licensePlateLeft.y  + 100] );
+            //LP yk1
+            STATE.LPyk1 = util.add_text(group, "Yk1\n" + PARAMS.licensePlateLeft.x.toFixed(0) + "px", [PARAMS.licensePlateLeft.x, PARAMS.licensePlateLeft.y + 160]);
+            //LP yk2
+            STATE.LPyk2 = util.add_text(group, "Yk2\n" + PARAMS.licensePlateRight.x.toFixed(0) + "px", [PARAMS.licensePlateRight.x, PARAMS.licensePlateRight.y + 160]);
         }
 
         function drawTCPLinesAndArrows(){
-            tcpArea = util.drawTCPArea(group);
-            var intersection = util.getVP_TCP_intersection(tcpArea);
-            util.freeDrawLine(group, '#ff0000', [intersection[0] - 300, intersection[1], intersection[0] + 50, intersection[1]]);
+            if(STATE.TCPUpperLine != null &&
+                STATE.TCPLowerLine != null &&
+                STATE.TCPMiddleLine!= null &&
+                STATE.TCPUpperArrow != null &&
+                STATE.TCPLowerArrow != null &&
+                STATE.TCPUpperPX != null &&
+                STATE.TCPLowerPX != null &&
+                STATE.TCPUpperPercentage != null &&
+                STATE.TCPLowerPercentage != null
+            ){
+                STATE.TCPUpperLine.destroy();
+                STATE.TCPLowerLine.destroy();
+                STATE.TCPMiddleLine.destroy();
+                STATE.TCPUpperArrow.destroy();
+                STATE.TCPLowerArrow.destroy();
+                STATE.TCPUpperPX.destroy();
+                STATE.TCPLowerPX.destroy();
+                STATE.TCPUpperPercentage.destroy();
+                STATE.TCPLowerPercentage.destroy();
+            }
+            
+            
+            STATE.tcpArea = util.drawTCPArea(group);
+            var intersection = util.getVP_TCP_intersection(STATE.tcpArea);
+            
             console.log(PARAMS.vanishingPoint.x);
             if(PARAMS.vanishingPoint.x < 0){
-                util.freeDrawLine(group, '#ff0000', [intersection[0] - 300, PARAMS.overlayTopLeft.y, intersection[0] + 50, PARAMS.overlayTopLeft.y]);
-                util.freeDrawLine(group, '#ff0000', [intersection[0] -300, PARAMS.overlayBottomLeft.y, intersection[0] + 50 , PARAMS.overlayBottomLeft.y]);
-                util.drawArrowRed(group, [intersection[0] - 280, PARAMS.overlayTopLeft.y -10, intersection[0] -280, intersection[1]+10]);
-                util.drawArrowRed(group, [intersection[0] - 280, PARAMS.overlayBottomLeft.y +10, intersection[0] - 280, intersection[1]-10]);
+                //Middle Line
+                STATE.TCPMiddleLine = util.freeDrawLine(group, '#ff0000', [intersection[0] - 300, intersection[1], intersection[0] + 50, intersection[1]]);
+                //Upper Line
+                STATE.TCPUpperLine = util.freeDrawLine(group, '#ff0000', [intersection[0] - 300, PARAMS.overlayTopLeft.y, intersection[0] + 50, PARAMS.overlayTopLeft.y]);
+                //Lower Line
+                STATE.TCPLowerLine = util.freeDrawLine(group, '#ff0000', [intersection[0] -300, PARAMS.overlayBottomLeft.y, intersection[0] + 50 , PARAMS.overlayBottomLeft.y]);
+                //Upper Arrow
+                STATE.TCPUpperArrow = util.drawArrow(group, [intersection[0] - 280, PARAMS.overlayTopLeft.y -5, intersection[0] -280, intersection[1]+5]);
+                //Lower Arrow
+                STATE.TCPLowerArrow = util.drawArrow(group, [intersection[0] - 280, PARAMS.overlayBottomLeft.y +5, intersection[0] - 280, intersection[1]-5]);
                 var topLength = - intersection[1] + PARAMS.overlayTopLeft.y;
                 var bottomLength = intersection[1] - PARAMS.overlayBottomLeft.y;
                 var length = (topLength + bottomLength);
-                util.add_text(group, topLength.toFixed(0) + "px", [intersection[0] - 500, (intersection[1] + PARAMS.overlayTopLeft.y)/2 -30 ] );
-                util.add_text(group, bottomLength.toFixed(0) + "px", [intersection[0] - 500, (intersection[1] + PARAMS.overlayBottomLeft.y)/2 - 30]);
-                util.add_text(group, (topLength/length*100).toFixed(2) + "%", [intersection[0] - 500, (intersection[1] + PARAMS.overlayTopLeft.y)/2 +30] );
-                util.add_text(group, (bottomLength/length*100).toFixed(2) + "%", [intersection[0] - 500, (intersection[1] + PARAMS.overlayBottomLeft.y)/2 + 30]);
+                //Upper PX Text
+                STATE.TCPUpperPX = util.add_text(group, topLength.toFixed(0) + "px", [intersection[0] - 500, (intersection[1] + PARAMS.overlayTopLeft.y)/2 -30 ] );
+                //Lower PX Text
+                STATE.TCPLowerPX = util.add_text(group, bottomLength.toFixed(0) + "px", [intersection[0] - 500, (intersection[1] + PARAMS.overlayBottomLeft.y)/2 - 30]);
+                //Upper % Text
+                STATE.TCPUpperPercentage = util.add_text(group, (topLength/length*100).toFixed(2) + "%", [intersection[0] - 500, (intersection[1] + PARAMS.overlayTopLeft.y)/2 +30] );
+                //Lower % Text
+                STATE.TCPLowerPercentage = util.add_text(group, (bottomLength/length*100).toFixed(2) + "%", [intersection[0] - 500, (intersection[1] + PARAMS.overlayBottomLeft.y)/2 + 30]);
             }
             else{
-                util.freeDrawLine(group, '#ff0000', [intersection[0] + 300, PARAMS.overlayTopRight.y, intersection[0] - 100, PARAMS.overlayTopRight.y]);
-                util.freeDrawLine(group, '#ff0000', [intersection[0] +300, PARAMS.overlayBottomRight.y, intersection[0] - 100, PARAMS.overlayBottomRight.y]);
-                util.drawArrowRed(group, [intersection[0] + 280, PARAMS.overlayTopLeft.y -10, intersection[0] +280, intersection[1]+10]);
-                util.drawArrowRed(group, [intersection[0] + 280, PARAMS.overlayBottomLeft.y +10, intersection[0] + 280, intersection[1]-10]);
+                //Middle Line
+                STATE.TCPMiddleLine = util.freeDrawLine(group, '#ff0000', [intersection[0] + 300, intersection[1], intersection[0] - 50, intersection[1]]);
+                //Upper Line
+                STATE.TCPUpperLine = util.freeDrawLine(group, '#ff0000', [intersection[0] + 300, PARAMS.overlayTopRight.y, intersection[0] - 50, PARAMS.overlayTopRight.y]);
+                //Lower Line
+                STATE.TCPLowerLine = util.freeDrawLine(group, '#ff0000', [intersection[0] +300, PARAMS.overlayBottomRight.y, intersection[0] - 50, PARAMS.overlayBottomRight.y]);
+                 //Upper Arrow
+                STATE.TCPUpperArrow = util.drawArrow(group, [intersection[0] + 280, PARAMS.overlayTopRight.y -5, intersection[0] +280, intersection[1]+5]);
+                 //Lower Arrow
+                STATE.TCPLowerArrow = util.drawArrow(group, [intersection[0] + 280, PARAMS.overlayBottomRight.y + 5, intersection[0] + 280, intersection[1]-5]);
                 var topLength = - intersection[1] + PARAMS.overlayTopRight.y;
                 var bottomLength = intersection[1] - PARAMS.overlayBottomRight.y;
                 var length = (topLength + bottomLength);
-                util.add_text(group, topLength.toFixed(2) + "px", [intersection[0] + 500, (intersection[1] + PARAMS.overlayTopLeft.y)/2] );
-                util.add_text(group, bottomLength.toFixed(2) + "px", [intersection[0] + 500, (intersection[1] + PARAMS.overlayBottomLeft.y)/2]);
+                //Upper PX Text
+                STATE.TCPUpperPX = util.add_text(group, topLength.toFixed(0) + "px", [intersection[0] + 500, (intersection[1] + PARAMS.overlayTopRight.y)/2 -30 ] );
+                //Lower PX Text
+                STATE.TCPLowerPX = util.add_text(group, bottomLength.toFixed(0) + "px", [intersection[0] + 500, (intersection[1] + PARAMS.overlayBottomRight.y)/2 - 30 ]);
+                //Upper % Text
+                STATE.TCPUpperPercentage = util.add_text(group, (topLength/length*100).toFixed(2) + "%", [intersection[0] + 500, (intersection[1] + PARAMS.overlayTopRight.y)/2 + 30] );
+                //Lower % Text
+                STATE.TCPLowerPercentage = util.add_text(group, (bottomLength/length*100).toFixed(2) + "%", [intersection[0] + 500, (intersection[1] + PARAMS.overlayBottomRight.y)/2 + 30]);
             }
 
 
         }
 
-
-
         //Vanishing Point
         vanPointButton.on('click', () =>{
-            if (vp != null) vp.destroy();
-            if (vpLine != null) vpLine.destroy();
-            if (vpText != null) vpText.destroy();
-            if (vpArrow != null) vpArrow.destroy();
+            if (STATE.vanishingPoint != null) STATE.vanishingPoint.destroy();
+            if (STATE.vanishingPointLine != null) STATE.vanishingPointLine.destroy();
+            if (STATE.vanishingPointText != null) STATE.vanishingPointText.destroy();
+            if (STATE.vanishingPointArrow != null) STATE.vanishingPointArrow.destroy();
             let [x1, y1] = [PARAMS.Point11.x , PARAMS.Point11.y];
             let [x2, y2] = [PARAMS.Point12.x, PARAMS.Point12.y];
             let [x3, y3] = [PARAMS.Point21.x, PARAMS.Point21.y];
@@ -288,15 +383,21 @@ $("#file_input").change(function(e){
             PARAMS.vanishingPoint = {x: intersectionPoint.x, y: intersectionPoint.y};
             pane.refresh();
             
-            vp = util.drawVanPoint(group, PARAMS.vanishingPoint.x, PARAMS.vanishingPoint.y);
+            STATE.vanishingPoint = util.drawVanPoint(group, PARAMS.vanishingPoint.x, PARAMS.vanishingPoint.y);
             //Redraw Lines to go to vanishing point
             redrawLines();
 
-            vpLine = util.freeDrawLine(group, '#5b9bd5', [PARAMS.vanishingPoint.x, 0, PARAMS.vanishingPoint.x, img_height]);
-            vpArrow = util.drawArrow(group, [PARAMS.vanishingPoint.x, 170, img_width/2, 170]);
+            STATE.vanishingPointLine = util.freeDrawLine(group, '#5b9bd5', [PARAMS.vanishingPoint.x, 0, PARAMS.vanishingPoint.x, img_height]);
+            STATE.vanishingPointArrow = util.drawArrow(group, [PARAMS.vanishingPoint.x, 170, img_width/2, 170]);
             const VPDistance = (Math.abs(PARAMS.vanishingPoint.x - img_width/2)).toFixed(0).toString() + "px";
             //console.log(VPDistance);
-            vpText = util.add_text(group, VPDistance, [550, 125]);
+            if (PARAMS.vanishingPoint.x<0){
+                STATE.vanishingPointText = util.add_text(group, VPDistance, [550, 125]);
+            }
+            else{
+                STATE.vanishingPointText = util.add_text(group, VPDistance, [2050, 125]);
+            }
+            
         });
 
 
@@ -372,12 +473,20 @@ $("#file_input").change(function(e){
         });
 
         helpLineButton.on('click', () => {
-            if (helpLine != null) helpLine.destroy();
+            if (STATE.helpLine != null&& 
+                STATE.helpLineText != null
+            ){
+                STATE.helpLine.destroy();
+                STATE.helpLineText.destroy();
+            }
+
             //if (helpLineText != null) helpLineText.destroy();
-            helpLine = util.drawArrow(group, [PARAMS.helpLineP1.x, PARAMS.helpLineP1.y - 50, PARAMS.helpLineP2.x, PARAMS.helpLineP2.y -50])
-            helpLineText = (Math.abs(PARAMS.helpLineP1.x - PARAMS.helpLineP2.x)).toFixed(0).toString() + "px";
+            STATE.helpLine = util.drawArrow(group, [PARAMS.helpLineP1.x +10 , PARAMS.helpLineP1.y - 50, PARAMS.helpLineP2.x -10, PARAMS.helpLineP2.y -50])
+            let hlText = (Math.abs(PARAMS.helpLineP1.x - PARAMS.helpLineP2.x)).toFixed(0).toString() + "px";
             let leftPoint = PARAMS.helpLineP1.x < PARAMS.helpLineP2.x ? PARAMS.helpLineP1 : PARAMS.helpLineP2;
-            util.add_text(group, helpLineText, [leftPoint.x +10, leftPoint.y - 90]);
+            STATE.helpLineText = util.add_text(group, hlText, [leftPoint.x +10, leftPoint.y - 110]);
+            STATE.helpLineLeft = util.freeDrawLine(group, '#ff0000', [PARAMS.helpLineP1.x, PARAMS.helpLineP1.y+30, PARAMS.helpLineP1.x, PARAMS.helpLineP1.y-60]);
+            STATE.helpLineLeft = util.freeDrawLine(group, '#ff0000', [PARAMS.helpLineP2.x, PARAMS.helpLineP2.y+30, PARAMS.helpLineP2.x, PARAMS.helpLineP2.y-60]);
         });
     }
 
@@ -390,19 +499,5 @@ $("#file_input").change(function(e){
 });
 
 
-function downloadURI(uri, name) {
-    const link = document.createElement('a');
-    link.download = name;
-    link.href = uri;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function exportImages(stage){
-    // Get the data URL of the entire stage (PNG format by default)
-    const dataURL = stage.toDataURL();
-    downloadURI(dataURL, 'img.png');
-}
 
 
