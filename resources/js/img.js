@@ -1,5 +1,13 @@
-import {PARAMS, SETTINGS, pane, clearButton, vanPointButton, inputFiles, helpLineButton, uploadXML, tireContactButton, exportImageBtn} from './menu.js';
+import {PARAMS, SETTINGS, pane, clearButton, vanPointButton, inputFiles, helpLineButton, uploadXML, tireContactButton, exportImageBtn, exportDataButton} from './menu.js';
 import * as util from './util.js';
+
+
+exportDataButton.on('click', () => {
+    util.downloadCSV(util.preprocessParams(PARAMS));
+});
+
+
+
 //Konva
 var stage = new Konva.Stage({
     container: 'container',

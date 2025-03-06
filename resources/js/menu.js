@@ -70,6 +70,11 @@ export const clearButton = TABS.pages[0].addButton({
     disabled: true
 })
 
+export const exportDataButton = TABS.pages[0].addButton({
+    title: 'Export Data',
+    disabled: false
+})
+
 
 // Show Select State and Image Ratio
 TABS.pages[1].addBinding(PARAMS, 'selectState', {

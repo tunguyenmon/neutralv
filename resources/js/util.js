@@ -1,7 +1,47 @@
 import {PARAMS, SETTINGS} from './menu.js';
 import {lines, layer} from './img.js';
 
-function add_text(group, text, coordinates ){
+
+export function preprocessParams(PARAMS){
+    let allParams = [
+        ["Value", "X", "Y"],
+        ["Vanishing Point", PARAMS.vanishingPoint.x,PARAMS.vanishingPoint.y],
+
+        ["Tire Contact Point", PARAMS.tireContactPoint.x,PARAMS.tireContactPoint.y],
+
+        ["OverlayTopLeft", PARAMS.overlayTopLeft.x,PARAMS.overlayTopLeft.y],
+
+        ["Overlay Bottom Left", PARAMS.overlayBottomLeft.x,PARAMS.overlayBottomLeft.y],
+
+        ["Overlay Bottom Right", PARAMS.overlayBottomRight.x,PARAMS.overlayBottomRight.y],
+
+        ["Overlay Top Right", PARAMS.overlayTopRight.x,PARAMS.overlayTopRight.y],
+
+        ["Helpline P1", PARAMS.helpLineP1.x,PARAMS.helpLineP1.y],
+
+        ["Helpline P2", PARAMS.helpLineP2.x,PARAMS.helpLineP2.y],
+
+        ["License Plate P1", PARAMS.licensePlateLeft.x,PARAMS.licensePlateLeft.y],
+
+        ["License Plate P2", PARAMS.licensePlateRight.x,PARAMS.licensePlateRight.y]
+    ]
+
+    return allParams.map(row => 
+        row.map(value => `${String(value)}`).join(',')
+    ).join('\n');
+}
+
+export function downloadCSV(csvString, filename = 'data.csv') {
+    const blob = new Blob([csvString], { type: 'text/csv' });
+    const link = Object.assign(document.createElement('a'), { 
+        href: URL.createObjectURL(blob), download: filename 
+    });
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function add_text(group, text, coordinates){
     const textObj = new Konva.Text({
         x: coordinates[0],
         y: coordinates[1],
