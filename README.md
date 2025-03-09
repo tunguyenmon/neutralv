@@ -1,5 +1,7 @@
 # Automated Visual Validation for Traffic Violations
-Application to create automated calculations and visualisations with a few clicks.
+Application to create automated calculations and visualisations with a few clicks. The presented code is only a demo!
+
+Use Neutralino to build and execute the application.
 
 # Credits
 
