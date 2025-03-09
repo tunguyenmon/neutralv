@@ -1,4 +1,9 @@
-# neutralinojs-minimal
+# Automated Visual Validation for Traffic Violations
+Application to create automated calculations and visualisations with a few clicks.
+
+# Credits
+
+## neutralinojs-minimal
 
 The default template for a Neutralinojs app. It's possible to use your favorite frontend framework by using [these steps](https://neutralino.js.org/docs/getting-started/using-frontend-libraries).
 
